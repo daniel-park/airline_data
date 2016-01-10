@@ -86,6 +86,9 @@ download.file(url=airline.url, destfile=airline.file)
 # Create csv file which will be loaded into memory.
 airline.csv88 <- read_csv(bzfile(airline.file))
 
+# Remove downloaded file from working directory
+file.remove("airline88.csv")
+
 # W/o using `setOldClass()`, an error occurs.
 # Not clear on what `setOldClass()` does.
 # See 
@@ -95,7 +98,7 @@ setOldClass(c("tbl_df", "data.frame"))
 
 # Add csv file to your table in your database.
 dbWriteTable(conn=db.connection, name='airline88_tbl', 
-             value=airline.csv88, append=TRUE, row.names = FALSE)
+             value=airline.csv88, append=TRUE, row.names=FALSE)
 
 Sql <- function(sql.command) {
   # Simplifies typing for SQL queries
