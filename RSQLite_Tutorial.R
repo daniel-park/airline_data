@@ -91,87 +91,16 @@ ggplot(data=airline.totals, aes(x=reorder(Description,Freq), y=Freq)) +
   labs(title="Number of Flights by Airline for 1988", 
          x="Airline", y="Frequency \n (in thousands of flights)")
 
+# Using sqldf
+# If you want to practice using SQL commands on a data frame
+library(sqldf)
 
+# `sqldf()` does not seem to recognize "."
+# So do not name data frame as `air.data`, for example
+airdata <- Sql("SELECT * FROM ontime")
 
-
-
-
-
-
-
-
-
-
-
-
-library(RCurl) # for `getURL()` function
-# required to handle 'https' addresses:
-airport.url <- getURL("https://raw.githubusercontent.com/jpatokal/openflights/master/data/airports.dat")
-latlong <- read.csv(header=FALSE, text=airport.url)
-airport.header <- c("id", "name", "city", "country", "code", "ICAOcode", 
-                    "latitude", "longitude", "altitude", "timezone", 
-                    "daysavtime", "olson_tz")
-names(latlong) <- airport.header
-head(latlong)
-
-uslatlong <- latlong[latlong$country=="United States",
-                     c("name", "city", "code", "latitude", "longitude")]
-rownames(uslatlong) <- NULL
-
-library(ggplot2)
-library(maps)
-# load US map data
-all_states <- map_data("state")
-
-cancelled <- Sql("SELECT Origin, Dest
-                 FROM ontime
-                 WHERE Cancelled=1;")
-
-total.cancel <- table(c(cancelled$Origin, cancelled$Dest))
-cancel.total <- as.data.frame(total.cancel)
-names(cancel.total) <- c("code", "freq")
-
-cancel.loc <- merge(cancel.total, uslatlong, by="code")
-cancel.loc48 <- cancel.loc[cancel.loc$longitude > -125,]
-
-p <- ggplot() + 
-  geom_polygon(data=all_states, aes(x=long, y=lat, group=group),colour="white", fill="grey50") +
-  geom_point(data=cancel.loc48, aes(x=longitude, y=latitude, size=freq), color="black") + 
-  scale_size(name="Cancellations") +
-  geom_text(data=cancel.loc48, hjust=0.5, vjust=-0.5, aes(x=longitude, y=latitude, label=ifelse(freq>2000,as.character(city),'')), size=4) +
-  theme(axis.line=element_blank(),
-        axis.text.x=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks=element_blank(),
-        axis.title.x=element_blank(),
-        axis.title.y=element_blank()) +
-  labs(title="Cancelled Flights in 1988")
-p
+sqldf("SELECT * FROM airdata 
+      LIMIT 10;")
 
 # Close connection.
 dbDisconnect(db.connection)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-x <- sqldf("SELECT * FROM airline88 
-           WHERE UniqueCarrier = 'PS';")
-
-x <- sqldf("SELECT * FROM airline88 
-           WHERE DayofMonth = 8 AND Month = 1;")
