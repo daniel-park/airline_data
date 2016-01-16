@@ -1,7 +1,7 @@
-
-
 # The following steps show how to add files to a SQLite data base
 #   using unzipped csv files in your working directory
+# Files come from http://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236
+# Click 'Prezipped File'
 library(RSQLite)
 library(dplyr) # for using dplyr functions on SQLite database
 library(data.table) # for a fast read of csv files using `fread()`
@@ -69,12 +69,8 @@ airline.files <- c("On_Time_On_Time_Performance_2011_1.csv",
                    "On_Time_On_Time_Performance_2015_10.csv",
                    "On_Time_On_Time_Performance_2015_11.csv")
 
-
-
-
 # Create database
 db.connection <- dbConnect(SQLite(), dbname="airline_db.sqlite")
-
 
 # Table is modeled after 
 # http://stat-computing.org/dataexpo/2009/sqlite.html
@@ -146,8 +142,6 @@ db_append <- function(file.names) {
 
 # Creating database took a little over 20 minutes
 db_append(airline.files)
-#    user   system  elapsed 
-# 644.087   61.512 1339.590 
 
 Sql <- function(sql.command) {
   # Simplifies typing for SQL queries
@@ -162,32 +156,18 @@ Sql("CREATE INDEX YearIndex
 
 Sql("CREATE INDEX DateIndex 
     ON airline_table(Year, Month, DayOfMonth);")
-#    user   system  elapsed 
-# 469.381   77.647 1642.357 
 
 Sql("CREATE INDEX OriginIndex 
     ON airline_table(Origin);")
-#    user   system  elapsed 
-# 355.468   74.276 1303.538 
 
 Sql("CREATE INDEX DestIndex 
     ON airline_table(Dest);")
-#     user   system  elapsed 
-#  349.429   72.590 1298.135 
 
 # Tells us how many rows in data
 # `rowid` is automatically generated when creating database
 Sql("SELECT rowid FROM airline_table 
     ORDER BY rowid 
     DESC LIMIT 1;")
-
-# If we want to use dplyr on SQLite database:
-dplyr.connection <- src_sqlite("airline_db.sqlite")
-airline.dplyr.table <- tbl(dplyr.connection, "airline_table")
-# Pulling data for American Airlines:
-american.airlines <- filter(airline.dplyr.table, UniqueCarrier=="AA")
-# If we want to issue SQL commands:
-tbl(dplyr.connection, sql("SELECT * FROM airline_table LIMIT 100"))
 
 # Close connection
 dbDisconnect(db.connection)
@@ -202,7 +182,15 @@ dbDisconnect(db.connection)
 
 
 
+# SCRATCH WORK
 
+# Had problems downloading Nov 2015.  Directed to page
+# http://tsdata.bts.gov/PREZIP/_On_Time_Performance_2015_11.zip
+# with "404 - File or directory not found.
+#
+# But
+# http://tsdata.bts.gov/PREZIP/On_Time_On_Time_Performance_2015_11.zip
+# seems to work.
 
 setwd("~/Documents/R_Projects/DataSciAirline/airline_csv")
 airline2009_01 <- fread(input="On_Time_On_Time_Performance_2009_1.csv", header = TRUE)
@@ -211,6 +199,9 @@ airline2015_11 <- fread(input="On_Time_On_Time_Performance_2015_11.csv", header 
 airline2011.10 <- fread(input="On_Time_On_Time_Performance_2011_10.csv", header = TRUE)
 airline2012.10 <- fread(input="On_Time_On_Time_Performance_2012_10.csv", header = TRUE)
 airline2015.11 <- fread(input="On_Time_On_Time_Performance_2015_11.csv", header = TRUE)
+reduced2015 <- airline2015.11[1:100,]
+
+
 
 names(airline2015.11)
 names(airline2012.10)
