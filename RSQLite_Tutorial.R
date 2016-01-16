@@ -1,8 +1,11 @@
 # This is a lesson on using SQL commands in R.
 # It assumes that an SQLite database has already been set up.
 
+###############################################################################
+# Part 1: Basics of setting up SQL environment in R
 # Set working directory
 setwd("~/Documents/East_Bay/DataScienceClub")
+setwd("/Users/DanielPark/Documents/R_Projects/DataSciAirline")
 
 # Load `RSQLite` library to enable SQL-related functions
 library(RSQLite)
@@ -51,7 +54,9 @@ Sql("SELECT ArrDelay FROM ontime LIMIT 10")
 # When quotes are necessary in a query
 Sql("SELECT COUNT(UniqueCarrier='UA') FROM ontime;")
 
-# Collect the airline code for each flight
+###############################################################################
+# Part 2: An example of using data from an SQL query
+# Collect the total mentions of airline codes for every flight
 airline.counts <- Sql("SELECT UniqueCarrier FROM ontime;")
 
 # Count total airline code
@@ -91,15 +96,17 @@ ggplot(data=airline.totals, aes(x=reorder(Description,Freq), y=Freq)) +
   labs(title="Number of Flights by Airline for 1988", 
          x="Airline", y="Frequency \n (in thousands of flights)")
 
-# Using sqldf
+###############################################################################
+# Part 3:  Using the `sqldf` package
 # If you want to practice using SQL commands on a data frame
 library(sqldf)
 
-# `sqldf()` does not seem to recognize "."
-# So do not name data frame as `air.data`, for example
-airdata <- Sql("SELECT * FROM ontime")
+# Import data from SQLite database
+air.data <- Sql("SELECT * FROM ontime")
 
-sqldf("SELECT * FROM airdata 
+# Note: if field name (column name) contains a period, it must be contained in
+#   quotes.
+sqldf("SELECT * FROM 'air.data' 
       LIMIT 10;")
 
 # Close connection.
