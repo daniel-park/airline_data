@@ -5,25 +5,29 @@
 # ATTENTION!!!
 # This is the part you need to change.
 # Set working directory
-setwd("/Users/DanielPark/Documents/R_Projects/DataSciAirline")
+setwd("/Users/DanielPark/Documents/R_Projects/DataSciAirline/airline_csv")
 ###############################################################################
 
-# Make sure that you have following packages downloaded.
-#   i.e. `install.packages("RSQLite")`
+# Check to see if `RSQLite` package is installed
+if (!"RSQLite" %in% installed.packages()){
+  install.packages("RSQLite")
+}
+
+# Load `RSQLite`
 library(RSQLite)
 
 # `airline_file` is the designated file name given to the downloaded file.
 # The downloaded file will be saved in your working directory.
 airline.file <- "airline88.csv"
 
-# `airline_url` is the specific web url where the zipped file is located.
+# `airline.url` is the specific web url where the zipped file is located.
 airline.url <- "http://stat-computing.org/dataexpo/2009/1988.csv.bz2"
 
 # Establishing a connection that will allow you to communicate 
 #   with the database.
 # Because there is no existing database, an empty database named 
 #   `airline88.sqlite` will be created.
-db.connection <- dbConnect(SQLite(), dbname="airline88.sqlite")
+db.connection <- dbConnect(drv=SQLite(), dbname="ontime.sqlite")
 # At the end of this R script, the connection will be closed.
 # Among other reasons, disconnecting will free up memory.
 # But now that an empty database has been created, running the same exact 
@@ -34,7 +38,7 @@ db.connection <- dbConnect(SQLite(), dbname="airline88.sqlite")
 # Note that multiple tables can exist in a database.
 # Table name is `ontime`
 dbSendQuery(conn = db.connection,
-            "CREATE TABLE ontime  
+            statement="CREATE TABLE ontime  
             (Year INTEGER,
             Month INTEGER,
             DayofMonth INTEGER,
@@ -67,10 +71,10 @@ dbSendQuery(conn = db.connection,
             )") 
 
 # `dbListTables()` will tell you what tables (if any) are in your database.
-dbListTables(db.connection)
+dbListTables(conn=db.connection)
 # `dbListFields()` will tell you the column names of a specified table
 #   in your database.
-dbListFields(db.connection, "ontime")
+dbListFields(conn=db.connection, name="ontime")
 
 # Download file
 # Recall that the variables `airline.url` and `airline.file` were 
@@ -85,6 +89,9 @@ airline.bzfile <- bzfile(description=airline.file)
 # Create csv file which will be loaded into memory.
 # May take a few minutes.
 airline.csv88 <- read.csv(file=airline.bzfile)
+# Using `system.time()`:
+#    user  system elapsed 
+# 173.803   4.355 215.931 
 
 # Remove downloaded file from working directory
 file.remove(file="airline88.csv")
@@ -100,6 +107,7 @@ Sql <- function(sql.command) {
 }
 
 # Indexes are useful for faster searching.
+# See `https://www.sqlite.org/queryplanner.html` for more info
 Sql("CREATE INDEX YearIndex 
     ON ontime(Year);")
 
@@ -129,4 +137,4 @@ Sql("SELECT * FROM ontime
     DESC LIMIT 10;")
 
 # Close connection.
-dbDisconnect(db.connection)
+dbDisconnect(conn=db.connection)
