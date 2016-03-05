@@ -110,4 +110,4 @@ sqldf("SELECT * FROM 'air.data'
       LIMIT 10;")
 
 # Close connection.
-dbDisconnect(db.connection)
+dbDisconnect(conn=db.connection)
