@@ -9,7 +9,6 @@
 
 ###############################################################################
 # ATTENTION!!!
-# This is the part you need to change.
 # Set working directory
 # i.e. setwd("/Users/DanielPark/Documents/R_Projects/DataSciAirline")
 ###############################################################################
@@ -22,12 +21,27 @@ if (!"RSQLite" %in% installed.packages()){
 # Load `RSQLite`
 library(RSQLite)
 
+# Download file
+# `download.file()` will create a zipped file named `airline87_zipped.bz2`,
+#    which will appear in your working directory.
+# Data comes from "http://stat-computing.org/dataexpo/2009/the-data.html"
+download.file(url="http://stat-computing.org/dataexpo/2009/1987.csv.bz2", 
+              destfile="airline87_zipped.bz2")
+
+# Allows for reading of a bzfile.
+airline.bzfile <- bzfile(description="airline87_zipped.bz2")
+
+# Create csv file which will be loaded into memory.
+# May take a minute.
+airline87 <- read.csv(file=airline.bzfile)
+
+
 
 
 # Establishing a connection that will allow you to communicate 
 #   with the database.
 # Because there is no existing database, an empty database named 
-#   `airline88.sqlite` will be created.
+#   `ontime.sqlite` will be created.
 db.connection <- dbConnect(drv=SQLite(), dbname="ontime.sqlite")
 # At the end of this R script, the connection will be closed.
 # Among other reasons, disconnecting will free up memory.
@@ -41,6 +55,7 @@ dbListTables(conn=db.connection)
 # Creating the basic structure for our table which will be in our database.
 # Note that multiple tables can exist in a database.
 # Table name is `ontime_tbl`
+# Template based off of "http://stat-computing.org/dataexpo/2009/sqlite.html"
 dbSendQuery(conn=db.connection,
             statement="CREATE TABLE ontime_tbl  
             (Year INTEGER,
@@ -81,40 +96,9 @@ dbListTables(conn=db.connection)
 dbListFields(conn=db.connection, name="ontime_tbl")
 
 
-
-
-
-
-# `airline_file` is the designated file name given to the downloaded file.
-# The downloaded file will be saved in your working directory.
-airline.file <- "airline88_zipped"
-
-# `airline.url` is the specific web url where the zipped file is located.
-airline.url <- "http://stat-computing.org/dataexpo/2009/1988.csv.bz2"
-
-# Download file
-# Recall that the variables `airline.url` and `airline.file` were 
-#   created above.
-# `download.file()` will generate the csv file named `airline88.csv`,
-#    which will appear in your working directory.
-download.file(url=airline.url, destfile=airline.file)
-
-# Allows for reading of a bzfile.
-airline.bzfile <- bzfile(description=airline.file)
-
-# Create csv file which will be loaded into memory.
-# May take a few minutes.
-airline88 <- read.csv(file=airline.bzfile)
-# Using `system.time()`:
-#    user  system elapsed 
-# 173.803   4.355 215.931 
-
-# Remove downloaded file from working directory
-file.remove(file="airline88_zipped")
-
 # Add csv file to your table in your database.
 dbWriteTable(conn=db.connection, name='ontime_tbl', 
-             value=airline88, append=TRUE, row.names=FALSE)
+             value=airline87, append=TRUE, row.names=FALSE)
 
 # Tells us how many rows in data.
 # `rowid` is automatically generated when creating database.
@@ -135,8 +119,12 @@ dbGetQuery(conn=db.connection,
            ORDER BY rowid 
            DESC LIMIT 10;")
 
+# Remove downloaded file from working directory.
+# No longer needed.
+file.remove(file="airline87_zipped.bz2")
+
 # Close connection.
-dbDisconnect(db.connection)
+dbDisconnect(conn=db.connection)
 
 ###################             END OF PART 1               ###################
 
@@ -173,7 +161,7 @@ str(object=first10rows) # Examine structure
 
 Sql <- function(sql.command) {
   # Simplifies typing for SQL queries
-  # Note dplyr package contains a function `sql` 
+  # Note dplyr package contains a function `sql()` 
   dbGetQuery(conn=db.connection, statement=sql.command)
 }
 
