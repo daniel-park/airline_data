@@ -1,3 +1,8 @@
+###############################################################################
+###################           Using SQLite in R            ####################
+###################              Daniel Park               ####################
+###############################################################################
+
 # Part 1: Shows how to create an SQLite database by directly downloading
 #   zipped files.
 #
@@ -10,7 +15,7 @@
 ###############################################################################
 # ATTENTION!!!
 # Set working directory
-# i.e. setwd("/Users/DanielPark/Documents/R_Projects/DataSciAirline")
+# i.e. setwd("/Users/DanielPark/Documents/R_Projects/Airline")
 ###############################################################################
 
 # Check to see if `RSQLite` package is installed
@@ -21,7 +26,6 @@ if (!"RSQLite" %in% installed.packages()){
 # Load `RSQLite`
 library(RSQLite)
 
-# Download file
 # `download.file()` will create a zipped file named `airline87_zipped.bz2`,
 #    which will appear in your working directory.
 # Data comes from "http://stat-computing.org/dataexpo/2009/the-data.html"
@@ -34,9 +38,6 @@ airline.bzfile <- bzfile(description="airline87_zipped.bz2")
 # Create csv file which will be loaded into memory.
 # May take a minute.
 airline87 <- read.csv(file=airline.bzfile)
-
-
-
 
 # Establishing a connection that will allow you to communicate 
 #   with the database.
@@ -119,7 +120,7 @@ dbGetQuery(conn=db.connection,
            ORDER BY rowid 
            DESC LIMIT 10;")
 
-# Remove downloaded file from working directory.
+# Delete downloaded file from working directory.
 # No longer needed.
 file.remove(file="airline87_zipped.bz2")
 
@@ -189,8 +190,7 @@ library(sqldf)
 # Import 1000 rows from SQLite database
 air.data <- Sql("SELECT * FROM ontime_tbl LIMIT 1000")
 
-# Note: if field name (column name) contains a period, it must be contained in
-#   quotes.
+# Note: if object name contains a period, it must be contained in quotes.
 sqldf("SELECT * FROM 'air.data' 
       LIMIT 10;")
 
